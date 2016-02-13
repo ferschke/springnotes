@@ -16,6 +16,7 @@ import org.springframework.data.rest.core.annotation.Description;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -23,12 +24,21 @@ import lombok.ToString;
 @EqualsAndHashCode(callSuper=true)
 @ToString(callSuper=true)
 @Entity
+@RequiredArgsConstructor
 @Table(name="notebook")
 @Description("A notebook represents a collection of note entities")
-public class NoteBook extends BaseEntity implements Serializable {
+public class Notebook extends BaseEntity implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
 
+	public Notebook(String title){
+		setTitle(title);
+	}
+	public Notebook(String title, String description){
+		setTitle(title);
+		setDescription(description);
+	}
+	
 	@Id
 	@Column(name="id_notebook", nullable=false)
     @GeneratedValue(strategy = GenerationType.AUTO)
