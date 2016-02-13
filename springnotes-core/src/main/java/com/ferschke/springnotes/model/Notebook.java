@@ -12,6 +12,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import org.springframework.data.rest.core.annotation.Description;
+import org.springframework.util.Assert;
 
 import lombok.AccessLevel;
 import lombok.Data;
@@ -37,6 +38,11 @@ public class Notebook extends BaseEntity implements Serializable {
 	public Notebook(String title, String description){
 		setTitle(title);
 		setDescription(description);
+	}
+	
+	public void addNote(Note note){
+		Assert.notNull(note, "Cannot add null to notebook.");
+		notes.add(note);
 	}
 	
 	@Id

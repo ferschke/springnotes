@@ -23,15 +23,14 @@ public class NoteService {
 	private final @NonNull NotebookRepository notebookRepo;
 
 	public Note createNote(String title, Notebook notebook){
-		Assert.hasText(title);
-		Assert.notNull(notebook);
+		Assert.hasText(title, "Note title cannot be empty.");
+		Assert.notNull(notebook, "Must provide notebook to which this note can be added.");
 		return noteRepo.save(new Note(title, notebook));
 	}
 
 	public Note createNote(String title, String body, String notebooktitle){
-		Assert.hasText(title);
-		Assert.hasText(body);
-		Assert.hasText(notebooktitle);
+		Assert.hasText(title, "Note title cannot be empty.");
+		Assert.hasText(notebooktitle, "Must provide notebook title.");
 		
 		Notebook curNotebook = notebookRepo.findByTitle(notebooktitle)
 				.orElse(notebookRepo.save(new Notebook(notebooktitle)));		

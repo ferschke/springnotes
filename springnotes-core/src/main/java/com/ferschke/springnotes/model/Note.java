@@ -13,6 +13,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import org.springframework.data.rest.core.annotation.Description;
+import org.springframework.util.Assert;
 
 import lombok.AccessLevel;
 import lombok.Data;
@@ -36,17 +37,17 @@ import lombok.ToString;
 public class Note extends BaseEntity implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-	
-	public Note(Notebook notebook){
-		setNotebook(notebook);
-	}
-	
+		
 	public Note(String title, Notebook notebook){
+		Assert.hasText(title, "Note title cannot be empty.");
+		Assert.notNull(notebook, "Must provide notebook to which this note can be added.");
 		setTitle(title);
 		setNotebook(notebook);
 	}
 
 	public Note(String title, String body, Notebook notebook){
+		Assert.hasText(title, "Note title cannot be empty.");
+		Assert.notNull(notebook, "Must provide notebook to which this note can be added.");
 		setTitle(title);
 		setBody(body);
 		setNotebook(notebook);
