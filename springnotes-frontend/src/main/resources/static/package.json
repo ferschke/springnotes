@@ -1,9 +1,9 @@
 {
-  "name": "discoursedb-annotation-ui",
-  "description": "DiscourseDB Annotation Web UI",
+  "name": "springnotes",
+  "description": "SpringNotes platform",
   "repository": {
     "type": "git",
-    "url": "git@github.com:discoursedb/discoursedb-annotation-ui.git"
+    "url": "git@https://github.com/ferschke/springnotes.git"
   },
   "keywords": [
     "rest",
@@ -14,9 +14,9 @@
   ],
   "author": "Oliver Ferschke",
   "bugs": {
-    "url": "https://github.com/DiscourseDB/discoursedb-annotation-ui/issues"
+    "url": "https://github.com/ferschke/springnotes/issues"
   },
-  "homepage": "https://github.com/DiscourseDB/discoursedb-annotation-ui",
+  "homepage": "https://github.com/ferschke/springnotes",
   "dependencies": {
     "babel-core": "^5.8.25",
     "babel-loader": "^5.3.2",

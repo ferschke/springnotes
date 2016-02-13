@@ -3,15 +3,18 @@
 const React = require('react');
 const when = require('when');
 const client = require('./client');
+
 const follow = require('./follow'); // function to hop multiple links by "rel"
+
 const stompClient = require('./websocket-listener');
+
 const root = '/api';
 
-class AnnotatorUI extends React.Component {
+class App extends React.Component {
 
 	constructor(props) {
 		super(props);
-		this.state = {contributions: [], attributes: [], page: 1, pageSize: 10, links: {}};
+		this.state = {notes: [], attributes: [], page: 1, pageSize: 5, links: {}};
 		this.updatePageSize = this.updatePageSize.bind(this);
 		this.onCreate = this.onCreate.bind(this);
 		this.onUpdate = this.onUpdate.bind(this);
@@ -21,38 +24,33 @@ class AnnotatorUI extends React.Component {
 		this.refreshAndGoToLastPage = this.refreshAndGoToLastPage.bind(this);
 	}
 
-	/*
-	 * Load data from DiscourseDB
-	 * 
-	 * pageSize can be updated via Websocket connection
-	 */
 	loadFromServer(pageSize) {
 		follow(client, root, [
-				{rel: 'contributions', params: {size: pageSize}}]
-		).then(contributionCollection => {
+				{rel: 'notes', params: {size: pageSize}}]
+		).then(noteCollection => {
 				return client({
 					method: 'GET',
-					path: contributionCollection.entity._links.profile.href,
+					path: noteCollection.entity._links.profile.href,
 					headers: {'Accept': 'application/schema+json'}
 				}).then(schema => {
 					this.schema = schema.entity;
-					this.links = contributionCollection.entity._links;
-					return contributionCollection;
+					this.links = noteCollection.entity._links;
+					return noteCollection;
 				});
-		}).then(contributionCollection => {
-			this.page = contributionCollection.entity.page;
-			return contributionCollection.entity._embedded.contributions.map(contribution =>
+		}).then(noteCollection => {
+			this.page = noteCollection.entity.page;
+			return noteCollection.entity._embedded.notes.map(note =>
 					client({
 						method: 'GET',
-						path: contribution._links.self.href
+						path: note._links.self.href
 					})
 			);
-		}).then(contributionPromises => {
-			return when.all(contributionPromises);
-		}).done(contributions => {
+		}).then(notePromises => {
+			return when.all(notePromises);
+		}).done(notes => {
 			this.setState({
 				page: this.page,
-				contributions: contributions,
+				notes: notes,
 				attributes: Object.keys(this.schema.properties),
 				pageSize: pageSize,
 				links: this.links
@@ -61,60 +59,60 @@ class AnnotatorUI extends React.Component {
 	}
 
 	// tag::on-create[]
-	onCreate(newContribution) {
-		follow(client, root, ['contributions']).done(response => {
+	onCreate(newNote) {
+		follow(client, root, ['notes']).done(response => {
 			client({
 				method: 'POST',
 				path: response.entity._links.self.href,
-				entity: newContribution,
+				entity: newNote,
 				headers: {'Content-Type': 'application/json'}
 			})
 		})
 	}
 	// end::on-create[]
 
-	onUpdate(contribution, updatedContribution) {
+	onUpdate(note, updatedNote) {
 		client({
 			method: 'PUT',
-			path: contribution.entity._links.self.href,
-			entity: updatedContribution,
+			path: note.entity._links.self.href,
+			entity: updatedNote,
 			headers: {
 				'Content-Type': 'application/json',
-				'If-Match': contribution.headers.Etag
+				'If-Match': note.headers.Etag
 			}
 		}).done(response => {
 			/* Let the websocket handler update the state */
 		}, response => {
 			if (response.status.code === 412) {
-				alert('DENIED: Unable to update ' + contribution.entity._links.self.href + '. Your copy is stale.');
+				alert('DENIED: Unable to update ' + note.entity._links.self.href + '. Your copy is stale.');
 			}
 		});
 	}
 
-	onDelete(contribution) {
-		client({method: 'DELETE', path: contribution.entity._links.self.href});
+	onDelete(note) {
+		client({method: 'DELETE', path: note.entity._links.self.href});
 	}
 
 	onNavigate(navUri) {
 		client({
 			method: 'GET',
 			path: navUri
-		}).then(contributionCollection => {
-			this.links = contributionCollection.entity._links;
-			this.page = contributionCollection.entity.page;
+		}).then(noteCollection => {
+			this.links = noteCollection.entity._links;
+			this.page = noteCollection.entity.page;
 
-			return contributionCollection.entity._embedded.contributions.map(contribution =>
+			return noteCollection.entity._embedded.notes.map(note =>
 					client({
 						method: 'GET',
-						path: contribution._links.self.href
+						path: note._links.self.href
 					})
 			);
-		}).then(contributionPromises => {
-			return when.all(contributionPromises);
-		}).done(contributions => {
+		}).then(notePromises => {
+			return when.all(notePromises);
+		}).done(notes => {
 			this.setState({
 				page: this.page,
-				contributions: contributions,
+				notes: notes,
 				attributes: Object.keys(this.schema.properties),
 				pageSize: this.state.pageSize,
 				links: this.links
@@ -131,7 +129,7 @@ class AnnotatorUI extends React.Component {
 	// tag::websocket-handlers[]
 	refreshAndGoToLastPage(message) {
 		follow(client, root, [{
-			rel: 'contributions',
+			rel: 'notes',
 			params: {size: this.state.pageSize}
 		}]).done(response => {
 			this.onNavigate(response.entity._links.last.href);
@@ -140,27 +138,27 @@ class AnnotatorUI extends React.Component {
 
 	refreshCurrentPage(message) {
 		follow(client, root, [{
-			rel: 'contributions',
+			rel: 'notes',
 			params: {
 				size: this.state.pageSize,
 				page: this.state.page.number
 			}
-		}]).then(contributionCollection => {
-			this.links = contributionCollection.entity._links;
-			this.page = contributionCollection.entity.page;
+		}]).then(noteCollection => {
+			this.links = noteCollection.entity._links;
+			this.page = noteCollection.entity.page;
 
-			return contributionCollection.entity._embedded.contributions.map(contribution => {
+			return noteCollection.entity._embedded.notes.map(note => {
 				return client({
 					method: 'GET',
-					path: contribution._links.self.href
+					path: note._links.self.href
 				})
 			});
-		}).then(contributionPromises => {
-			return when.all(contributionPromises);
-		}).then(contributions => {
+		}).then(notePromises => {
+			return when.all(notePromises);
+		}).then(notes => {
 			this.setState({
 				page: this.page,
-				contributions: contributions,
+				notes: notes,
 				attributes: Object.keys(this.schema.properties),
 				pageSize: this.state.pageSize,
 				links: this.links
@@ -173,9 +171,9 @@ class AnnotatorUI extends React.Component {
 	componentDidMount() {
 		this.loadFromServer(this.state.pageSize);
 		stompClient.register([
-			{route: '/topic/newContribution', callback: this.refreshAndGoToLastPage},
-			{route: '/topic/updateContribution', callback: this.refreshCurrentPage},
-			{route: '/topic/deleteContribution', callback: this.refreshCurrentPage}
+			{route: '/topic/newNote', callback: this.refreshAndGoToLastPage},
+			{route: '/topic/updateNote', callback: this.refreshCurrentPage},
+			{route: '/topic/deleteNote', callback: this.refreshCurrentPage}
 		]);
 	}
 	// end::register-handlers[]
@@ -184,8 +182,8 @@ class AnnotatorUI extends React.Component {
 		return (
 			<div>
 				<CreateDialog attributes={this.state.attributes} onCreate={this.onCreate}/>
-				<ContributionList page={this.state.page}
-							  contributions={this.state.contributions}
+				<NoteList page={this.state.page}
+							  notes={this.state.notes}
 							  links={this.state.links}
 							  pageSize={this.state.pageSize}
 							  attributes={this.state.attributes}
@@ -198,9 +196,6 @@ class AnnotatorUI extends React.Component {
 	}
 }
 
-/*
- * Represents a create dialog for new contributions
- */	
 class CreateDialog extends React.Component {
 
 	constructor(props) {
@@ -210,11 +205,11 @@ class CreateDialog extends React.Component {
 
 	handleSubmit(e) {
 		e.preventDefault();
-		var newContribution = {};
+		var newNote = {};
 		this.props.attributes.forEach(attribute => {
-			newContribution[attribute] = React.findDOMNode(this.refs[attribute]).value.trim();
+			newNote[attribute] = React.findDOMNode(this.refs[attribute]).value.trim();
 		});
-		this.props.onCreate(newContribution);
+		this.props.onCreate(newNote);
 		this.props.attributes.forEach(attribute => {
 			React.findDOMNode(this.refs[attribute]).value = ''; // clear out the dialog's inputs
 		});
@@ -229,13 +224,13 @@ class CreateDialog extends React.Component {
 		);
 		return (
 			<div>
-				<a href="#createContribution">Create</a>
+				<a href="#createNote">Create</a>
 
-				<div id="createContribution" className="modalDialog">
+				<div id="createNote" className="modalDialog">
 					<div>
 						<a href="#" title="Close" className="close">X</a>
 
-						<h2>Create new contribution</h2>
+						<h2>Create new note</h2>
 
 						<form>
 							{inputs}
@@ -257,24 +252,24 @@ class UpdateDialog extends React.Component {
 
 	handleSubmit(e) {
 		e.preventDefault();
-		var updatedContribution = {};
+		var updatedNote = {};
 		this.props.attributes.forEach(attribute => {
-			updatedContribution[attribute] = React.findDOMNode(this.refs[attribute]).value.trim();
+			updatedNote[attribute] = React.findDOMNode(this.refs[attribute]).value.trim();
 		});
-		this.props.onUpdate(this.props.contribution, updatedContribution);
+		this.props.onUpdate(this.props.note, updatedNote);
 		window.location = "#";
 	}
 
 	render() {
 		var inputs = this.props.attributes.map(attribute =>
-				<p key={this.props.contribution.entity[attribute]}>
+				<p key={this.props.note.entity[attribute]}>
 					<input type="text" placeholder={attribute}
-						   defaultValue={this.props.contribution.entity[attribute]}
+						   defaultValue={this.props.note.entity[attribute]}
 						   ref={attribute} className="field" />
 				</p>
 		);
 
-		var dialogId = "updateContribution-" + this.props.contribution.entity._links.self.href;
+		var dialogId = "updateNote-" + this.props.note.entity._links.self.href;
 
 		return (
 			<div>
@@ -284,7 +279,7 @@ class UpdateDialog extends React.Component {
 					<div>
 						<a href="#" title="Close" className="close">X</a>
 
-						<h2>Update a contribution</h2>
+						<h2>Update an note</h2>
 
 						<form>
 							{inputs}
@@ -298,7 +293,7 @@ class UpdateDialog extends React.Component {
 
 }
 
-class ContributionList extends React.Component {
+class NoteList extends React.Component {
 
 	constructor(props) {
 		super(props);
@@ -341,11 +336,11 @@ class ContributionList extends React.Component {
 
 	render() {
 		var pageInfo = this.props.page.hasOwnProperty("number") ?
-			<h3>Contributions - Page {this.props.page.number + 1} of {this.props.page.totalPages}</h3> : null;
+			<h3>Notes - Page {this.props.page.number + 1} of {this.props.page.totalPages}</h3> : null;
 
-		var contributions = this.props.contributions.map(contribution =>
-			<Contribution key={contribution.entity._links.self.href}
-					  contribution={contribution}
+		var notes = this.props.notes.map(note =>
+			<Note key={note.entity._links.self.href}
+					  note={note}
 					  attributes={this.props.attributes}
 					  onUpdate={this.props.onUpdate}
 					  onDelete={this.props.onDelete}/>
@@ -371,11 +366,13 @@ class ContributionList extends React.Component {
 				<input ref="pageSize" defaultValue={this.props.pageSize} onInput={this.handleInput}/>
 				<table>
 					<tr>
-						<th>Time</th>
+						<th>Title</th>
+						<th>Text</th>
+						<th>Notebook</th>
 						<th></th>
 						<th></th>
 					</tr>
-					{contributions}
+					{notes}
 				</table>
 				<div>
 					{navLinks}
@@ -385,10 +382,7 @@ class ContributionList extends React.Component {
 	}
 }
 
-/*
- * Represents a contribution
- */
-class Contribution extends React.Component {
+class Note extends React.Component {
 
 	constructor(props) {
 		super(props);
@@ -396,15 +390,17 @@ class Contribution extends React.Component {
 	}
 
 	handleDelete() {
-		this.props.onDelete(this.props.contribution);
+		this.props.onDelete(this.props.note);
 	}
 
 	render() {
 		return (
 			<tr>
-				<td>{this.props.contribution.entity.startTime}</td>
+				<td>{this.props.note.entity.title}</td>
+				<td>{this.props.note.entity.body}</td>
+				<td>{this.props.note.entity.notebook.title}</td>
 				<td>
-					<UpdateDialog contribution={this.props.contribution}
+					<UpdateDialog note={this.props.note}
 								  attributes={this.props.attributes}
 								  onUpdate={this.props.onUpdate}/>
 				</td>
@@ -416,10 +412,7 @@ class Contribution extends React.Component {
 	}
 }
 
-/*
- * Renders the UI
- */
 React.render(
-	<AnnotatorUI />,
+	<App />,
 	document.getElementById('react')
 )
