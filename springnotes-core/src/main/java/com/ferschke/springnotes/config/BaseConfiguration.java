@@ -79,7 +79,7 @@ public class BaseConfiguration {
 		LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
 		factory.setDataSource(dataSource);
 		factory.setJpaVendorAdapter(vendorAdapter);
-		factory.setPackagesToScan("edu.cmu.cs.lti.discoursedb");
+		factory.setPackagesToScan("com.ferschke.springnotes");
 
 		Properties jpaProperties = new Properties();
 		jpaProperties.put("hibernate.dialect", env.getRequiredProperty("hibernate.dialect"));
