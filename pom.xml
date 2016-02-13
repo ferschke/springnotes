@@ -1,9 +1,10 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>com.ferschke</groupId>
-  <artifactId>springnotes-parent</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-  <name>Note management platform based on Spring</name>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.ferschke</groupId>
+	<artifactId>springnotes-parent</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>Note management platform based on Spring</name>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.target>1.8</maven.compiler.target>
@@ -11,7 +12,7 @@
 		<maven.surefire.heap>512m</maven.surefire.heap>
 		<maven.surefire.argLine />
 		<querydsl.version>3.7.1</querydsl.version>
-		<springplatform.version>2.0.2.RELEASE</springplatform.version>
+		<springplatform.version>2.1.0.BUILD-SNAPSHOT</springplatform.version>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
@@ -108,6 +109,14 @@
 		</dependency>
 	</dependencies>
 	<repositories>
+		<repository>
+			<id>spring-snapshots</id>
+			<name>Spring Snapshots</name>
+			<url>http://repo.spring.io/snapshot</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
 		<repository>
 			<!-- BEGIN NEEDED FOR http://jira.codehaus.org/browse/MCOBERTURA-189 -->
 			<id>ossrh</id>

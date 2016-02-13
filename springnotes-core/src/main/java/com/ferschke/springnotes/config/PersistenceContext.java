@@ -34,16 +34,16 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
 @Configuration
 @EnableAutoConfiguration
 @EnableTransactionManagement
-@ComponentScan(basePackages = { "com.ferschke.springnotes.model","com.ferschke.springnotes.repository","com.ferschke.springnotes.service"})
 @PropertySources({
     @PropertySource("classpath:hibernate.properties"), //default hibernate configuration
     @PropertySource("classpath:jdbc.properties"), //default database configuration
     @PropertySource("classpath:c3p0.properties"), //default connection pool configuration
     @PropertySource(value = "classpath:custom.properties", ignoreResourceNotFound = true) //optional custom config. keys specified here override defaults 
 })
+@ComponentScan(basePackages = { "com.ferschke.springnotes.model","com.ferschke.springnotes.repository","com.ferschke.springnotes.service"})
 @EntityScan(basePackages = { "com.ferschke.springnotes.model" })
 @EnableJpaRepositories(basePackages = { "com.ferschke.springnotes.repository" })
-public class BaseConfiguration {
+public class PersistenceContext {
 
 	@Autowired 
 	private Environment environment;
@@ -105,5 +105,4 @@ public class BaseConfiguration {
 		transactionManager.setEntityManagerFactory(entityManagerFactory);
 		return transactionManager;
 	}
-
 }
