@@ -2,11 +2,14 @@ package com.ferschke.springnotes.model;
 
 import java.io.Serializable;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import org.springframework.data.rest.core.annotation.Description;
@@ -58,4 +61,9 @@ public class Note extends BaseEntity implements Serializable {
 	@Column(columnDefinition="LONGTEXT")
 	@Description("The text body of a note")
 	private String body;
+
+	@ManyToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "fk_notebook")
+	@Description("The notebook to which this note belongs")
+	private NoteBook notebook;
 }

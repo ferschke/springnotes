@@ -4,6 +4,7 @@ import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
+import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Version;
 
@@ -48,6 +49,13 @@ public abstract class BaseEntity{
 	@Setter(AccessLevel.PRIVATE) 
 	@Description("The date this entity was last modified. Only used for auditing purposes.")
 	private Date modificationTime;
+
+	@PrePersist
+    public void prePersist(){
+		Date now = new Date();
+        this.creationTime = now;
+        this.modificationTime = now;
+    }
 
 	@PreUpdate
     public void preUpdate() {
