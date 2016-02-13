@@ -671,5 +671,6 @@
 	<packaging>pom</packaging>
 	<modules>
 		<module>springnotes-core</module>
+		<module>springnotes-frontend</module>
 	</modules>
 </project>
