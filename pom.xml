@@ -12,7 +12,7 @@
 		<maven.surefire.heap>512m</maven.surefire.heap>
 		<maven.surefire.argLine />
 		<querydsl.version>3.7.1</querydsl.version>
-		<springplatform.version>2.1.0.BUILD-SNAPSHOT</springplatform.version>
+		<springplatform.version>2.0.2.RELEASE</springplatform.version>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
